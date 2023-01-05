@@ -1,32 +1,50 @@
-import type { MetaFunction } from "@remix-run/node";
-import {
-	Links,
-	LiveReload,
-	Meta,
-	Outlet,
-	Scripts,
-	ScrollRestoration,
-} from "@remix-run/react";
+import { Outlet, LiveReload, Link } from "@remix-run/react"
 
-export const meta: MetaFunction = () => ({
-	charset: "utf-8",
-	title: "New Remix App",
-	viewport: "width=device-width,initial-scale=1",
-});
+type Props = {
+  title?: string
+  children?: React.ReactNode
+}
 
 export default function App() {
-	return (
-		<html lang="en">
-			<head>
-				<Meta />
-				<Links />
-			</head>
-			<body>
-				<Outlet />
-				<ScrollRestoration />
-				<Scripts />
-				<LiveReload />
-			</body>
-		</html>
-	);
+  return (
+    <Document>
+      <Layout>
+        <Outlet />
+      </Layout>
+    </Document>
+  )
+}
+
+const Document: React.FC<Props> = ({ title, children }) => {
+  return (
+    <html>
+      <head>
+        <title>{title ? title : "Remix Blog"}</title>
+      </head>
+      <body>
+        {children}
+        {process.env.NODE_ENV === "development" ? <LiveReload /> : null}
+      </body>
+    </html>
+  )
+}
+
+const Layout: React.FC<Props> = ({ children }) => {
+  return (
+    <>
+      <nav>
+        <Link to="/" className="logo">
+          Remix
+        </Link>
+
+        <ul className="nav">
+          <li>
+            <Link to="/posts">Posts</Link>
+          </li>
+        </ul>
+
+        <div className="container">{children}</div>
+      </nav>
+    </>
+  )
 }
