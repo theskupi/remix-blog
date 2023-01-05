@@ -1,8 +1,22 @@
-import { Outlet, LiveReload, Link } from "@remix-run/react"
+import { Outlet, LiveReload, Link, Links, Meta } from "@remix-run/react"
+import globalStylesUrl from "~/styles/global.css"
 
 type Props = {
   title?: string
   children?: React.ReactNode
+}
+
+export const links = (): object[] => [
+  { rel: "stylesheet", href: globalStylesUrl },
+]
+export const meta = (): object => {
+  const description = "My first Remix app"
+  const keywords = "remix, react, javascript"
+
+  return {
+    description,
+    keywords,
+  }
 }
 
 export default function App() {
@@ -19,6 +33,8 @@ const Document: React.FC<Props> = ({ title, children }) => {
   return (
     <html>
       <head>
+        <Meta />
+        <Links />
         <title>{title ? title : "Remix Blog"}</title>
       </head>
       <body>
@@ -32,7 +48,7 @@ const Document: React.FC<Props> = ({ title, children }) => {
 const Layout: React.FC<Props> = ({ children }) => {
   return (
     <>
-      <nav>
+      <nav className="navbar">
         <Link to="/" className="logo">
           Remix
         </Link>
@@ -42,9 +58,8 @@ const Layout: React.FC<Props> = ({ children }) => {
             <Link to="/posts">Posts</Link>
           </li>
         </ul>
-
-        <div className="container">{children}</div>
       </nav>
+      <div className="container">{children}</div>
     </>
   )
 }
