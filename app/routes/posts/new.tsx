@@ -1,5 +1,6 @@
 import { redirect } from "@remix-run/node"
 import { Link } from "@remix-run/react"
+import { db } from "~/utils/db.server"
 
 export const action = async ({ request }) => {
   const form = await request.formData()
@@ -8,10 +9,8 @@ export const action = async ({ request }) => {
 
   const fields = { title, body }
 
-  console.log(fields)
-
-  //todo - submit to database
-  return redirect("/posts")
+  const post = await db.post.create({ data: fields })
+  return redirect(`/posts/${post.id}`)
 }
 
 const NewPost: React.FC = () => {
@@ -28,11 +27,11 @@ const NewPost: React.FC = () => {
         <form method="post">
           <div className="form-control">
             <label htmlFor="title">Title</label>
-            <input type="text" name="title" id="title" />
+            <input type="text" name="title" id="title" required />
           </div>
           <div className="form-control">
             <label htmlFor="body">Post body</label>
-            <textarea name="body" id="body" />
+            <textarea name="body" id="body" required />
           </div>
           <button type="submit" className="btn btn-block">
             Add Post
