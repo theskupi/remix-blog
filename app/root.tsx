@@ -1,5 +1,7 @@
-import { Outlet, LiveReload, Link, Links, Meta } from "@remix-run/react"
-import globalStylesUrl from "~/styles/global.css"
+import { Outlet, LiveReload, Link, Links, Meta } from '@remix-run/react'
+import globalStylesUrl from '~/styles/global.css'
+import { getUser } from './utils/session.server'
+import { useLoaderData } from '@remix-run/react'
 
 type Props = {
   title?: string
@@ -7,16 +9,24 @@ type Props = {
 }
 
 export const links = (): object[] => [
-  { rel: "stylesheet", href: globalStylesUrl },
+  { rel: 'stylesheet', href: globalStylesUrl },
 ]
 export const meta = (): object => {
-  const description = "My first Remix app"
-  const keywords = "remix, react, javascript"
+  const description = 'My first Remix app'
+  const keywords = 'remix, react, javascript'
 
   return {
     description,
     keywords,
   }
+}
+
+export const loader = async ({ request }) => {
+  const user = await getUser(request)
+  const data = {
+    user,
+  }
+  return data
 }
 
 export default function App() {
@@ -35,17 +45,19 @@ const Document: React.FC<Props> = ({ title, children }) => {
       <head>
         <Meta />
         <Links />
-        <title>{title ? title : "Remix Blog"}</title>
+        <title>{title ? title : 'Remix Blog'}</title>
       </head>
       <body>
         {children}
-        {process.env.NODE_ENV === "development" ? <LiveReload /> : null}
+        {process.env.NODE_ENV === 'development' ? <LiveReload /> : null}
       </body>
     </html>
   )
 }
 
 const Layout: React.FC<Props> = ({ children }) => {
+  const { user } = useLoaderData()
+
   return (
     <>
       <nav className="navbar">
@@ -57,6 +69,19 @@ const Layout: React.FC<Props> = ({ children }) => {
           <li>
             <Link to="/posts">Posts</Link>
           </li>
+          {user ? (
+            <li>
+              <form action="/auth/logout" method="POST">
+                <button className="btn" type="submit">
+                  Logout {user.username}
+                </button>
+              </form>
+            </li>
+          ) : (
+            <li>
+              <Link to="/auth/login">Login</Link>
+            </li>
+          )}
         </ul>
       </nav>
       <div className="container">{children}</div>
