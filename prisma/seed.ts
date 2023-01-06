@@ -1,21 +1,30 @@
 import { PrismaClient } from "@prisma/client"
-const db = new PrismaClient()
+const prisma = new PrismaClient()
 
 async function seed() {
+  const skupi = await prisma.user.create({
+    data: {
+      username: "skupi",
+      passwordHash:
+        "$2a$10$Y5BSGwaJbWilbtrvct3uNexgs3lA0BKic7.jEN2ndUkBCw/NQApRW",
+    },
+  })
+
   await Promise.all(
     getPosts().map((post) => {
-      return db.post.create({ data: post })
+      const data = { userId: skupi.id, ...post }
+      return prisma.post.create({ data })
     })
   )
 }
 
 seed()
   .then(async () => {
-    await db.$disconnect()
+    await prisma.$disconnect()
   })
   .catch(async (e) => {
     console.error(e)
-    await db.$disconnect()
+    await prisma.$disconnect()
     process.exit(1)
   })
 
