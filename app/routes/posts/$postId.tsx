@@ -3,7 +3,14 @@ import { Link, useLoaderData } from '@remix-run/react'
 import { db } from '~/utils/db.server'
 import { getUser } from '~/utils/session.server'
 
-export const loader = async ({ params, request }) => {
+interface LoaderParams {
+  params: {
+    postId: string
+  }
+  request: any
+}
+
+export const loader = async ({ params, request }: LoaderParams) => {
   const user = await getUser(request)
   const post = await db.post.findUnique({
     where: { id: params.postId },
@@ -15,7 +22,7 @@ export const loader = async ({ params, request }) => {
   return data
 }
 
-export const action = async ({ params, request }) => {
+export const action = async ({ params, request }: LoaderParams) => {
   const form = await request.formData()
   if (form.get('_method') === 'delete') {
     const user = await getUser(request)

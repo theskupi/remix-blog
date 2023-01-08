@@ -1,25 +1,18 @@
+import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useActionData } from '@remix-run/react'
 import { db } from '~/utils/db.server'
 import { login, createUserSession, register } from '~/utils/session.server'
-
-function validateUsername(username: string) {
-  if (typeof username !== 'string' || username.length < 3) {
-    return 'Username must be at least 3 characters'
-  }
-}
-
-function validatePassword(password: string) {
-  if (typeof password !== 'string' || password.length < 6) {
-    return 'Password must be at least 6 characters'
-  }
+import { validateInput } from '../../utils/validateInput'
+interface ActionParams extends LoaderArgs {
+  request: any
 }
 
 export const badRequest = (data: object) => {
   return json(data, { status: 400 })
 }
 
-export const action = async ({ request }) => {
+export const action = async ({ request }: ActionParams) => {
   const form = await request.formData()
   const loginType = form.get('loginType')
   const username = form.get('username')
@@ -28,8 +21,8 @@ export const action = async ({ request }) => {
   const fields = { loginType, username, password }
 
   const fieldErrors = {
-    username: validateUsername(username),
-    password: validatePassword(password),
+    username: validateInput(username, 3),
+    password: validateInput(password, 6),
   }
 
   if (Object.values(fieldErrors).some(Boolean)) {

@@ -2,10 +2,15 @@ import { Outlet, LiveReload, Link, Links, Meta } from '@remix-run/react'
 import globalStylesUrl from '~/styles/global.css'
 import { getUser } from './utils/session.server'
 import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunction } from '@remix-run/node'
 
 type Props = {
   title?: string
   children?: React.ReactNode
+}
+
+export type LoaderData = {
+  user: Awaited<ReturnType<typeof getUser>>
 }
 
 export const links = (): object[] => [
@@ -21,7 +26,7 @@ export const meta = (): object => {
   }
 }
 
-export const loader = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUser(request)
   const data = {
     user,
@@ -56,7 +61,7 @@ const Document: React.FC<Props> = ({ title, children }) => {
 }
 
 const Layout: React.FC<Props> = ({ children }) => {
-  const { user } = useLoaderData()
+  const { user } = useLoaderData() as LoaderData
 
   return (
     <>
@@ -89,7 +94,7 @@ const Layout: React.FC<Props> = ({ children }) => {
   )
 }
 
-export const ErrorBoundary = ({ error }) => {
+export const ErrorBoundary = (error: Error) => {
   console.log(error)
   return (
     <Document>

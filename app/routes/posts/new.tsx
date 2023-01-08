@@ -1,39 +1,48 @@
+import type { LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Link, useActionData } from '@remix-run/react'
 import { db } from '~/utils/db.server'
 import { getUser } from '~/utils/session.server'
+import { validateInput } from '~/utils/validateInput'
 
-function validateInput(input: string, charLength: number) {
-  if (typeof input !== 'string' || input.length < charLength) {
-    return `Title should be at least ${charLength} characters long.`
-  }
+interface ActionParams extends LoaderArgs {
+  request: any
 }
 
-export const action = async ({ request }) => {
+export const action = async ({ request }: ActionParams) => {
   const form = await request.formData()
   const title = form.get('title')
   const body = form.get('body')
-  const user = await getUser(request)
+  try {
+    const user = await getUser(request)
 
-  const fields = { title, body }
+    const fields = { title, body }
 
-  const fieldErrors = {
-    title: validateInput(title, 3),
-    body: validateInput(body, 10),
+    const fieldErrors = {
+      title: validateInput(title, 3),
+      body: validateInput(body, 10),
+    }
+
+    if (Object.values(fieldErrors).some(Boolean)) {
+      console.log(fieldErrors)
+      return json({ fieldErrors, fields }, { status: 400 })
+    }
+
+    if (!user) {
+      throw new Error('User not found in database')
+    }
+
+    const post = await db.post.create({
+      data: {
+        ...fields,
+        userId: user.id,
+      },
+    })
+    return redirect(`/posts/${post.id}`)
+  } catch (err) {
+    console.error(err)
+    throw err
   }
-
-  if (Object.values(fieldErrors).some(Boolean)) {
-    console.log(fieldErrors)
-    return json({ fieldErrors, fields }, { status: 400 })
-  }
-
-  const post = await db.post.create({
-    data: {
-      ...fields,
-      userId: user.id,
-    },
-  })
-  return redirect(`/posts/${post.id}`)
 }
 
 const NewPost: React.FC = () => {
